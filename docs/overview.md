@@ -26,7 +26,7 @@ methods (a display's `fill()`, `rect()`, `wake()`).
 | `php-baremetal/spi-hal` (virtual) | The platform side: host setup, device attach, transfers. On ESP32 it is `php-baremetal/esp32-spi-hal` (platform `esp32`, over `esp_driver_spi`). |
 | `php-baremetal/bm-common` | The shared `bm_err.h` error codes. |
 
-You never require the HAL yourself. Conductor reads the platform from `extra.baremetal.sdk` (`esp32@^1.0` gives
+You never require the HAL yourself. Conductor reads the platform from `extra.baremetal.sdk` (`esp32@^2.0` gives
 `esp32`) and adds `php-baremetal/esp32-spi-hal` while Composer resolves. The extension's PHP module is `spi`.
 
 ## Install
@@ -73,7 +73,7 @@ The resulting `composer.json`, for a Waveshare ESP32-S3-Touch-LCD-1.85B (an ST77
   },
   "extra": {
     "baremetal": {
-      "sdk": "esp32@^1.0",
+      "sdk": "esp32@^2.0",
       "board": "waveshare-esp32-s3-touch-lcd-1.85b",
       "runtime": "init-loop",
       "storage": "embedded"

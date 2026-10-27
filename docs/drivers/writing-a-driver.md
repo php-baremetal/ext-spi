@@ -220,7 +220,7 @@ Keep the driver next to the project as a path repository; conductor links it int
   },
   "extra": {
     "baremetal": {
-      "sdk": "esp32@^1.0",
+      "sdk": "esp32@^2.0",
       "board": "espressif-esp32-s3-devkitc-1-n8r8",
       "runtime": "init-loop",
       "storage": "embedded"
