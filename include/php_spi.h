@@ -36,6 +36,26 @@ typedef struct {
     zend_object  std;
 } spi_device_object;
 
+/* Argument checks for a device: CS a GPIO number or -1, clock 0 (the default) to 80 MHz, mode 0 to 3.
+ * false (with a ValueError) otherwise. */
+static inline bool spi_check_device_args(uint32_t cs_arg, zend_long cs, uint32_t hz_arg, zend_long hz,
+                                         uint32_t mode_arg, zend_long mode)
+{
+    if (cs < -1 || cs > 255) {
+        zend_argument_value_error(cs_arg, "must be a GPIO number or -1");
+        return false;
+    }
+    if (hz < 0 || hz > (zend_long) SPI_MAX_HZ) {
+        zend_argument_value_error(hz_arg, "must be between 0 and 80000000 (Hz; 0 is the default)");
+        return false;
+    }
+    if (mode < 0 || mode > 3) {
+        zend_argument_value_error(mode_arg, "must be an SPI mode from 0 to 3");
+        return false;
+    }
+    return true;
+}
+
 static inline spi_bus_object *spi_bus_object_from(zend_object *o)
 {
     return (spi_bus_object *)((char *)o - XtOffsetOf(spi_bus_object, std));

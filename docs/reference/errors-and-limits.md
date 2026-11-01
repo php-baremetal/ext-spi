@@ -22,9 +22,12 @@ exception classes of its own. Messages end with the HAL's error name (on ESP32 a
 | `cannot add SPI device cs=N: ...` | `Bus::device()`, `new Device()` | The CS is held by a driver, no free device slot, or the HAL could not attach the device. |
 | `cannot init NAME (cs=N): ...` | a driver constructor that uses the shared one | The CS is taken, no free slot, or the driver's `init` failed. |
 | `SPI transfer failed: ...`, `SPI write failed: ...`, `SPI read failed: ...` | `transfer()`, `write()`, `read()` | The transfer failed, was too long, or the device is driven by a managed-io driver. |
+| `Trying to clone an uncloneable object of class ...` | `clone` | A copy would not own the bus or the device: keep one object for each. |
 | `Spi\Bus is not initialised`, `Spi\Device is not initialised` | any method | The object was created without its constructor running (for example a subclass that skipped it). |
 
-`\ValueError` is thrown by `read()` for a `$length` that is not greater than 0. Driver methods throw their own
+`\ValueError` is thrown for a `$host` outside 1 to 255, a `$cs` that is neither a GPIO number (0 to 255) nor
+`-1`, a `$hz` outside 0 to 80000000 (0 is the default clock), a `$mode` outside 0 to 3, and by `read()` for a
+`$length` that is not greater than 0. Driver methods throw their own
 `\Exception` messages (for example `st77916 init failed: ...`).
 
 The php-baremetal error names: `chip select already used by another driver on this bus` and

@@ -44,8 +44,8 @@ A driver package registers into it by naming its descriptor symbol:
 - **ext-spi registers the classes**
 
   At module startup, for each descriptor ext-spi registers `Baremetal\Spi\Driver\<php_class>` as a subclass of
-  `Baremetal\Spi\Device`, with the descriptor's method table. If the descriptor's `capability` is
-  `Baremetal\Output\Display`, the class implements that interface.
+  `Baremetal\Spi\Device`, with the descriptor's method table. If the descriptor has a `capability`,
+  the class implements that interface (created empty when nothing registered it).
 
 - **PHP uses the class**
 

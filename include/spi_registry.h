@@ -24,6 +24,8 @@
 #include <stdbool.h>
 
 #define SPI_DEFAULT_HZ  (1000000u)
+#define SPI_MAX_HZ      (80000000u)
+#define SPI_MAX_HOST    (255)
 
 typedef struct spi_bus {
     bool   in_use;

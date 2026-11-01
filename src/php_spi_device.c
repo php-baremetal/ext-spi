@@ -22,7 +22,6 @@
 zend_class_entry *spi_device_ce;
 static zend_object_handlers spi_device_handlers;
 
-static zend_class_entry *spi_cap_display_ce;
 
 static zend_object *spidev_obj_create(zend_class_entry *ce)
 {
@@ -86,6 +85,9 @@ PHP_METHOD(SpiDevice, __construct)
         Z_PARAM_LONG(mode)
     ZEND_PARSE_PARAMETERS_END();
 
+    if (!spi_check_device_args(2, cs, 3, hz, 4, mode)) {
+        RETURN_THROWS();
+    }
     spi_bus_object *bo = spi_bus_object_from(Z_OBJ_P(zbus));
     if (!bo->bus) {
         zend_throw_exception(zend_ce_exception, "Spi\\Bus is not initialised", 0);
@@ -184,13 +186,31 @@ void spi_device_class_register(void)
     memcpy(&spi_device_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     spi_device_handlers.offset = XtOffsetOf(spi_device_object, std);
     spi_device_handlers.free_obj = spidev_obj_free;
+    spi_device_handlers.clone_obj = NULL;   /* a copy would not own the device: clone throws */
 }
 
 void spi_capabilities_register(void)
 {
     zend_class_entry ce;
     INIT_NS_CLASS_ENTRY(ce, "Baremetal\\Output", "Display", NULL);
-    spi_cap_display_ce = zend_register_internal_interface(&ce);
+    zend_register_internal_interface(&ce);
+}
+
+/* The interface for a capability FQN: the registered one (Output\\Display, or any interface loaded before,
+ * such as one extending it), else a new marker interface. NULL only if the name is taken by a class. */
+static zend_class_entry *spi_capability_iface(const char *fqn)
+{
+    size_t len = strlen(fqn);
+    zend_string *lc = zend_string_alloc(len, 0);
+    zend_str_tolower_copy(ZSTR_VAL(lc), fqn, len);
+    zend_class_entry *ce = zend_hash_find_ptr(CG(class_table), lc);
+    zend_string_release(lc);
+    if (ce) {
+        return (ce->ce_flags & ZEND_ACC_INTERFACE) ? ce : NULL;
+    }
+    zend_class_entry nce;
+    INIT_CLASS_ENTRY_EX(nce, fqn, len, NULL);
+    return zend_register_internal_interface(&nce);
 }
 
 void spi_driver_classes_register(void)
@@ -200,16 +220,18 @@ void spi_driver_classes_register(void)
         if (!desc || !desc->php_class) {
             continue;
         }
-        char fqn[96];
-        int n = snprintf(fqn, sizeof(fqn), "Baremetal\\Spi\\Driver\\%s", desc->php_class);
+        zend_string *fqn = zend_strpprintf(0, "Baremetal\\Spi\\Driver\\%s", desc->php_class);
         zend_class_entry ce;
-        INIT_CLASS_ENTRY_EX(ce, fqn, n, desc->methods);
+        INIT_CLASS_ENTRY_EX(ce, ZSTR_VAL(fqn), ZSTR_LEN(fqn), desc->methods);
         zend_class_entry *dce = zend_register_internal_class_ex(&ce, spi_device_ce);
+        zend_string_release(fqn);
         dce->create_object = spidev_obj_create;
 
-        if (desc->capability && spi_cap_display_ce &&
-            strcmp(desc->capability, "Baremetal\\Output\\Display") == 0) {
-            zend_class_implements(dce, 1, spi_cap_display_ce);
+        if (desc->capability) {
+            zend_class_entry *iface = spi_capability_iface(desc->capability);
+            if (iface) {
+                zend_class_implements(dce, 1, iface);
+            }
         }
     }
 }
@@ -233,7 +255,10 @@ void spi_driver_ctor(INTERNAL_FUNCTION_PARAMETERS, const spi_driver_desc_t *desc
     if (cs < 0) {
         cs = desc->default_cs;
     }
-    if (hz <= 0) {
+    if (!spi_check_device_args(2, cs, 3, hz, 0, 0)) {   /* the mode is the driver's own */
+        return;
+    }
+    if (hz == 0) {
         hz = desc->default_hz ? desc->default_hz : SPI_DEFAULT_HZ;
     }
     bm_err_t err = BM_OK;

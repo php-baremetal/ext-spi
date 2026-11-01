@@ -67,6 +67,10 @@ PHP_METHOD(SpiBus, __construct)
         Z_PARAM_LONG(host)
     ZEND_PARSE_PARAMETERS_END();
 
+    if (host < 1 || host > SPI_MAX_HOST) {
+        zend_argument_value_error(6, "must be between 1 and 255 (the platform's SPI host number)");
+        RETURN_THROWS();
+    }
     bm_err_t err = BM_OK;
     spi_bus_t *bus = spi_bus_get((int) host, (int) sclk, (int) mosi, (int) miso,
                                  (int) data2, (int) data3, &err);
@@ -88,6 +92,9 @@ PHP_METHOD(SpiBus, device)
         Z_PARAM_LONG(mode)
     ZEND_PARSE_PARAMETERS_END();
 
+    if (!spi_check_device_args(1, cs, 2, hz, 3, mode)) {
+        RETURN_THROWS();
+    }
     spi_bus_object *o = spi_bus_object_from(Z_OBJ_P(ZEND_THIS));
     if (!o->bus) {
         zend_throw_exception(zend_ce_exception, "Spi\\Bus is not initialised", 0);
@@ -120,4 +127,5 @@ void spi_bus_class_register(void)
     memcpy(&spi_bus_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     spi_bus_handlers.offset = XtOffsetOf(spi_bus_object, std);
     spi_bus_handlers.free_obj = spibus_obj_free;
+    spi_bus_handlers.clone_obj = NULL;   /* a copy would not own the bus: clone throws */
 }

@@ -36,7 +36,8 @@ SPI mode, 0 to 3 (clock polarity and phase). Ignored when the device already exi
 <!-- @endparam -->
 <!-- @endparams -->
 
-Neither `$hz` nor `$mode` is range-checked by ext-spi; the HAL rejects values it cannot use. Throws
+A `$cs` that is neither a GPIO number nor `-1`, a `$hz` outside 0 to 80000000 or a `$mode` outside 0 to 3
+throws `\ValueError`; the HAL still rejects values the chip cannot use. Throws
 `\Exception` `cannot add SPI device cs=N: ...` when a driver already holds the CS, when all 8 device slots are
 in use, or when the HAL cannot attach the device.
 

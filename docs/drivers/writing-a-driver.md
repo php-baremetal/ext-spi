@@ -144,10 +144,10 @@ that). ext-spi 1.0 reads these:
 | Field | Meaning |
 | --- | --- |
 | `name` | Registry name, used in constructor errors, e.g. `"st77916"`. |
-| `php_class` | Short class name; the class is `Baremetal\Spi\Driver\<php_class>`. Must be unique among installed drivers; the full name must fit in 95 characters. |
-| `capability` | Interface FQN, or `NULL`. Only `"Baremetal\\Output\\Display"` is honoured; any other value is ignored and the class implements nothing. |
+| `php_class` | Short class name; the class is `Baremetal\Spi\Driver\<php_class>`. Must be unique among installed drivers. |
+| `capability` | Interface FQN, or `NULL`. The class implements that interface: `Baremetal\Output\Display`, any interface registered before ext-spi's drivers (one extending `Display`, for example), or else a new empty interface with that name. |
 | `default_cs` | CS pin when the constructor gets a negative one. `-1` means no default. |
-| `default_hz` | Clock when the constructor gets 0 or less; 0 here means 1 MHz. |
+| `default_hz` | Clock when the constructor gets 0 (a negative value throws `\ValueError`); 0 here means 1 MHz. |
 | `default_mode` | SPI mode 0 to 3. Always used: the shared constructor has no `$mode` argument. |
 | `managed_io` | `false`: ext-spi attaches a HAL device on the CS pin, and `spi_dev_transfer()` works. `true`: no HAL device is attached; the driver drives the wire itself (for example through a platform LCD library), and the inherited `transfer()`, `write()` and `read()` fail with `ESP_ERR_INVALID_STATE`. |
 | `state_size` | Bytes allocated (zeroed) per device before `init`. `bm_spi_driver.h` has no accessor for this block; a driver that needs it includes `spi_registry.h` and reads `d->state`. |

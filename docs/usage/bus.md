@@ -36,7 +36,8 @@ QSPI data line 2. The bus is four-line only when both `$data2` and `$data3` are 
 QSPI data line 3.
 <!-- @endparam -->
 <!-- @param name="$host" type="int" default="1" -->
-The platform's SPI host number, the key of the bus. On ESP32 chips `1` is `SPI2_HOST` and `2` is `SPI3_HOST`.
+The platform's SPI host number, the key of the bus, from 1 to 255 (anything else throws `\ValueError`). On
+ESP32 chips `1` is `SPI2_HOST` and `2` is `SPI3_HOST`.
 <!-- @endparam -->
 <!-- @endparams -->
 
