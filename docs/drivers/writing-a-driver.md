@@ -145,14 +145,15 @@ that). ext-spi 1.0 reads these:
 | --- | --- |
 | `name` | Registry name, used in constructor errors, e.g. `"st77916"`. |
 | `php_class` | Short class name; the class is `Baremetal\Spi\Driver\<php_class>`. Must be unique among installed drivers. |
-| `capability` | Interface FQN, or `NULL`. The class implements that interface: `Baremetal\Output\Display`, any interface registered before ext-spi's drivers (one extending `Display`, for example), or else a new empty interface with that name. |
+| `capability` | Interface FQN, or `NULL`. The class implements that interface: one registered before ext-spi's drivers (`Baremetal\Output\Display` comes from ext-display), or else a new empty interface with that name. |
 | `default_cs` | CS pin when the constructor gets a negative one. `-1` means no default. |
 | `default_hz` | Clock when the constructor gets 0 (a negative value throws `\ValueError`); 0 here means 1 MHz. |
 | `default_mode` | SPI mode 0 to 3. Always used: the shared constructor has no `$mode` argument. |
 | `managed_io` | `false`: ext-spi attaches a HAL device on the CS pin, and `spi_dev_transfer()` works. `true`: no HAL device is attached; the driver drives the wire itself (for example through a platform LCD library), and the inherited `transfer()`, `write()` and `read()` fail with `ESP_ERR_INVALID_STATE`. |
 | `state_size` | Bytes allocated (zeroed) per device before `init`. `bm_spi_driver.h` has no accessor for this block; a driver that needs it includes `spi_registry.h` and reads `d->state`. |
 | `init` | Called once when the device is first created, on the PHP task, after the HAL device is attached. Return `BM_OK`, or an error code the constructor reports (`BM_ERR_NOT_FOUND` for a wrong chip identity). |
-| `methods` | The class's method table (`zend_function_entry[]`). |
+| `methods` | The class's method table (`zend_function_entry[]`). A display driver adds ext-display's methods with `DISPLAY_FE` (from `display_panel.h`) before `PHP_FE_END`. |
+| `class_init` | Optional. Called once with the registered `zend_class_entry *`, at module start-up, after the class implements its capability: add class constants here (`zend_declare_class_constant_double()`, and so on). |
 
 Declared but not read by ext-spi 1.0: `deinit` (devices are never torn down). Filling it is harmless.
 

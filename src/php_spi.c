@@ -13,14 +13,13 @@
 
 /*
  * spi extension module: at MINIT it resets the registries and registers Baremetal\Spi\Bus,
- * Baremetal\Spi\Device, the Output\Display capability and the selected driver classes.
+ * Baremetal\Spi\Device and the selected driver classes.
  */
 #include "php_spi.h"
 
 PHP_MINIT_FUNCTION(spi)
 {
     spi_registry_init();
-    spi_capabilities_register();
     spi_bus_class_register();
     spi_device_class_register();
     spi_driver_classes_register();

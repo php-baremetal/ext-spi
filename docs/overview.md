@@ -117,7 +117,6 @@ function loop(int $tick): void
 | `Baremetal\Spi\Bus` | class | One SPI host and its SCLK and data pins; `device()`. |
 | `Baremetal\Spi\Device` | class | One chip on a bus, keyed by its CS pin: `transfer()`, `write()`, `read()`. |
 | `Baremetal\Spi\Driver\*` | classes | One per installed driver package, each extends `Device`. |
-| `Baremetal\Output\Display` | interface | Capability marker a display driver class implements. Always defined, no methods. |
 
 The extension defines no functions and no constants. Failures throw `\Exception` with a readable message;
 an invalid `read()` length throws `\ValueError`. See [Errors and limits](./reference/errors-and-limits.md).

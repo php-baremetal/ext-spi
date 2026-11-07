@@ -69,8 +69,5 @@ static inline spi_device_object *spi_device_object_from(zend_object *o)
 void spi_bus_class_register(void);
 void spi_device_class_register(void);
 
-/* Register the capability interface Output\Display. */
-void spi_capabilities_register(void);
-
 /* Register the selected driver classes (Baremetal\Spi\Driver\*), each extending Device. */
 void spi_driver_classes_register(void);

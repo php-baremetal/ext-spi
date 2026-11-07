@@ -12,8 +12,8 @@
 */
 
 /*
- * Baremetal\Spi\Device: raw transport over one SPI device (transfer/write/read), plus the capability and
- * driver class registration.
+ * Baremetal\Spi\Device: raw transport over one SPI device (transfer/write/read), plus the driver class
+ * registration.
  */
 #include "php_spi.h"
 #include "bm_spi_hal.h"
@@ -189,15 +189,8 @@ void spi_device_class_register(void)
     spi_device_handlers.clone_obj = NULL;   /* a copy would not own the device: clone throws */
 }
 
-void spi_capabilities_register(void)
-{
-    zend_class_entry ce;
-    INIT_NS_CLASS_ENTRY(ce, "Baremetal\\Output", "Display", NULL);
-    zend_register_internal_interface(&ce);
-}
-
-/* The interface for a capability FQN: the registered one (Output\\Display, or any interface loaded before,
- * such as one extending it), else a new marker interface. NULL only if the name is taken by a class. */
+/* The interface for a capability FQN: the registered one (Output\\Display from ext-display, or any interface
+ * loaded before), else a new marker interface. NULL only if the name is taken by a class. */
 static zend_class_entry *spi_capability_iface(const char *fqn)
 {
     size_t len = strlen(fqn);
@@ -232,6 +225,9 @@ void spi_driver_classes_register(void)
             if (iface) {
                 zend_class_implements(dce, 1, iface);
             }
+        }
+        if (desc->class_init) {
+            desc->class_init(dce);
         }
     }
 }
