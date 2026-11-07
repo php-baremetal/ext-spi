@@ -2,6 +2,7 @@
 
 ## 1.1.0
 
+- Added: ide/ext-spi.stub, the PHP declarations of the package for IDEs (conductor copies it into vendor/php-baremetal/ide-stubs/).
 - Added: `spi_driver_desc_t.class_init`, an optional hook called with the driver's class once it is registered, so a driver can add class constants.
 - Changed: ext-spi no longer registers Baremetal\Output\Display; ext-display does (a driver that declares the capability finds it registered, or gets a marker interface as for any capability).
 

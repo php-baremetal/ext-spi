@@ -23,7 +23,8 @@
                     "type": "spi_driver_desc_t",
                     "header": "spi_driver_desc.h"
                 }
-            }
+            },
+            "ide-stubs": ["ide/ext-spi.stub"]
         }
     }
 }

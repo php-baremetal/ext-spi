@@ -1,0 +1,109 @@
+<?php
+// php-baremetal/ext-spi 1.1.0 — IDE helper, not loaded at runtime.
+
+namespace Baremetal\Spi {
+    /**
+     * One SPI master host with its clock and data pins; it lives for the whole run.
+     *
+     * A second new Bus() on the same host with the same pins returns the same underlying bus. There is no
+     * close(): a bus stays open until the board restarts. Any method of an object whose constructor did not run
+     * throws \Exception "Spi\Bus is not initialised"; clone throws \Error.
+     */
+    class Bus
+    {
+        /**
+         * Opens (or finds) the SPI host on these pins.
+         *
+         * @param int $sclk GPIO number of the clock line.
+         * @param int $mosi GPIO number of MOSI; on a QSPI bus, data line 0.
+         * @param int $miso GPIO number of MISO, or -1 for a write-only bus; on a QSPI bus, data line 1.
+         * @param int $data2 QSPI data line 2, or -1; the bus is four-line only when both $data2 and $data3 are
+         *                   given.
+         * @param int $data3 QSPI data line 3, or -1.
+         * @param int $host The platform's SPI host number, the key of the bus, 1 to 255. Some hosts may already
+         *                  be used by the firmware (microSD storage, wired network).
+         * @throws \ValueError When $host is outside 1 to 255.
+         * @throws \Exception "cannot open SPI host N: ..." when the host is open with other pins or a pin belongs
+         *                    to a bus on another host, both bus slots are in use, or the platform cannot initialise
+         *                    the host.
+         */
+        public function __construct(int $sclk, int $mosi, int $miso = -1, int $data2 = -1, int $data3 = -1, int $host = 1) {}
+
+        /**
+         * Attaches a raw device on this bus; same as new Device($bus, $cs, $hz, $mode).
+         *
+         * Asking again for a CS returns the existing device (the new $hz and $mode are ignored).
+         *
+         * @param int $cs GPIO number of the chip-select line, or -1.
+         * @param int $hz SCLK frequency in Hz, 0 to 80000000; 0 means 1 MHz.
+         * @param int $mode SPI mode, 0 to 3 (clock polarity and phase).
+         * @return Device The raw device.
+         * @throws \ValueError When $cs is neither a GPIO number (0 to 255) nor -1, $hz is outside 0 to 80000000,
+         *                     or $mode is outside 0 to 3.
+         * @throws \Exception "cannot add SPI device cs=N: ..." when a driver already holds the CS, all 8 device
+         *                    slots are in use, or the platform cannot attach the device.
+         */
+        public function device(int $cs, int $hz = 1000000, int $mode = 0): Device {}
+    }
+
+    /**
+     * One chip on a bus, selected by its CS pin: full-duplex transfers, writes and reads of raw bytes.
+     *
+     * Every driver class under Baremetal\Spi\Driver\ extends it. The object is a handle: dropping it never
+     * touches the hardware, and asking for the same CS again returns the same device. Every transfer runs on the
+     * calling PHP task and blocks until it completes; CS stays active for the whole call. Any method of an object
+     * whose constructor did not run throws \Exception "Spi\Device is not initialised"; clone throws \Error.
+     */
+    class Device
+    {
+        /**
+         * Attaches the chip whose chip select is $cs on $bus.
+         *
+         * @param Bus $bus The bus the chip is wired to.
+         * @param int $cs GPIO number of the chip-select line, driven around each transfer, or -1.
+         * @param int $hz SCLK frequency in Hz, 0 to 80000000; 0 means 1 MHz. Ignored when the device already
+         *                exists.
+         * @param int $mode SPI mode, 0 to 3 (clock polarity and phase). Ignored when the device already exists.
+         * @throws \ValueError When $cs is neither a GPIO number (0 to 255) nor -1, $hz is outside 0 to 80000000,
+         *                     or $mode is outside 0 to 3.
+         * @throws \Exception "cannot add SPI device cs=N: ..." when a driver already holds the CS, all 8 device
+         *                    slots are in use, or the platform cannot attach the device.
+         */
+        public function __construct(Bus $bus, int $cs, int $hz = 1000000, int $mode = 0) {}
+
+        /**
+         * Full duplex: clocks out every byte of $tx and returns the bytes clocked in at the same time.
+         *
+         * Pad $tx with dummy bytes for a response: CS stays active for the whole call. An empty string does
+         * nothing.
+         *
+         * @param string $tx The bytes to send, at most 32768.
+         * @return string The bytes received, same length as $tx.
+         * @throws \Exception "SPI transfer failed: ..." when the transfer failed, was too long, or the device is
+         *                    driven by a managed-io driver.
+         */
+        public function transfer(string $tx): string {}
+
+        /**
+         * Clocks out the bytes of $data and discards what comes back. An empty string does nothing.
+         *
+         * @param string $data The bytes to send, at most 32768.
+         * @return void
+         * @throws \Exception "SPI write failed: ..." when the transfer failed, was too long, or the device is
+         *                    driven by a managed-io driver.
+         */
+        public function write(string $data): void {}
+
+        /**
+         * Clocks out zero bytes and returns the bytes received; a chip that needs a command first needs
+         * transfer().
+         *
+         * @param int $length Number of bytes to read, greater than 0 (at most 32768).
+         * @return string The $length bytes received.
+         * @throws \ValueError When $length is not greater than 0.
+         * @throws \Exception "SPI read failed: ..." when the transfer failed, was too long, or the device is driven
+         *                    by a managed-io driver.
+         */
+        public function read(int $length): string {}
+    }
+}
